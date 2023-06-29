@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "co-fastapi-jwt"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "co_fastapi_jwt"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = {extras = ["all"], version = "^0.98.0"}
+alembic = "^1.11.1"
+python-dotenv = "^1.0.0"
+sqlalchemy = "^2.0.16"
+passlib = "^1.7.4"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+uvicorn = "^0.22.0"
+tortoise-orm = "^0.19.3"
+psycopg2 = "^2.9.6"
+celery = "^5.3.1"
+pytest = "^7.4.0"
+bcrypt = "^4.0.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pyright = "^1.1.315"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
