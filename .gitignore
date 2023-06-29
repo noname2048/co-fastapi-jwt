@@ -1,0 +1,20 @@
+# IDE
+.vscode
+.idea
+
+# secret
+.env*
+
+# python(pyenv)
+.python-version
+
+# python(poetry)
+.venv
+poetry.lock
+
+# python
+__pycache__/
+*.pyc
+
+# python(mypy)
+.mypy_cache
