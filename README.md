@@ -1,4 +1,4 @@
-# co-fastapi-jws
+# co-fastapi-jwt
 
 - jwt 아키텍트 구조를 만들기 위한 연습용레포
 
