@@ -2,9 +2,9 @@
 name = "co-fastapi-jwt"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = []
 readme = "README.md"
-packages = [{include = "co_fastapi_jwt"}]
+packages = []
 
 [tool.poetry.dependencies]
 python = "^3.11"
