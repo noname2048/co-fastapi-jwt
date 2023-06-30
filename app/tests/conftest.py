@@ -19,10 +19,10 @@ TestingSessionLocal = sessionmaker(
 
 def overried_get_db():
     try:
-        db = TestingSessionLocal()
-        yield db
+        test_db = TestingSessionLocal()
+        yield test_db
     finally:
-        db.close()
+        test_db.close()
 
 
 app.dependency_overrides[get_db] = overried_get_db
@@ -35,8 +35,8 @@ def db():
     try:  # TODO: change logic BETA for Change if Table exists
         Base.metadata.drop_all(bind=engine)
         Base.metadata.create_all(bind=engine)
-        db = TestingSessionLocal()
-        yield db
+        test_db = TestingSessionLocal()
+        yield test_db
     finally:
-        db.close()
+        test_db.close()
         Base.metadata.drop_all(bind=engine)
