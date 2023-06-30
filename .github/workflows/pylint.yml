@@ -16,7 +16,7 @@ jobs:
           python -m pip install --upgrade pip poetry
       - name: Install dependencies
         run: |
-          python -m poetry install
+          python -m poetry install --with dev
       # ----------------------------
       - name: Activate virtualenv
         run: |
