@@ -6,6 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Setup poetry
+        uses: Gr1N/setup-poetry@v8
+        with:
+            poetry-version: "1.4"
       - uses: chartboost/ruff-action@v1
       - name: Analysing the code with Ruff
         run: |
