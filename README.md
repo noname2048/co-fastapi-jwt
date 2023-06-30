@@ -48,6 +48,8 @@ pyproject.toml 에 해당 설정을 넣습니다.
  그러나 아직까지 ruff가 pylint를 대체하기 어려워 보입니다.
 pylint가 제공하는 정보에 비해 ruff의 디버깅 정보가 많이 부족해 보입니다. (redefined-outer-name 등)
 ruff 는 속도가 빠르므로 main 이외의 브랜치나 pre-commit 으로 이용하는 게 좋을 것 같음
+
+일단 어떤 에러를 방지할 수 있는지에 대해 검사하기 위해서 pre-commit 세팅은 했지만, 아직 사용 용도는 검증 안됨
  
  ### .vscode(black, isort)
 다음과 같은 설정을 사용합니다.
@@ -62,3 +64,7 @@ ruff 는 속도가 빠르므로 main 이외의 브랜치나 pre-commit 으로 �
 ### workflows(pylint)
 - 여러가지 디버그를 도와줄 수 있는 pylint 관련 
 - github action 에서 poetry shell 이나, source 시에도 pylint를 못 찾아서 requirements 로 리스트화 해서 설치하는 형식으로 우회  
+
+
+### github action flows
+pylint 가 체크하는데 시간이 오래 걸리기 때문에, app 디렉토리가 변경되었을 떄만 실행되도록 변경

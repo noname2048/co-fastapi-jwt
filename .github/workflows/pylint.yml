@@ -4,6 +4,13 @@ on:
   push:
     paths:
       - "app/**"
+  #   branches:
+  #     - '*'
+  #     - '!main' # main will be protected by pull request
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - "app/**"
 
 jobs:
   build:
