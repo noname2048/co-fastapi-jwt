@@ -154,7 +154,7 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime):
 
     # aud 검증
     uuid = payload["uuid"]
-    db_user = db.query(User).filter(User.uuid == uuid, User.is_activate == True).one()
+    db_user = db.query(User).filter(User.uuid == uuid, User.is_activate is True).one()
     if not db_user:
         raise invalid_token_exception
 
