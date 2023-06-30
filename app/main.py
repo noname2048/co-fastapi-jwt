@@ -4,7 +4,6 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .apis.v1.api import api_router as v1_api_router
 from .core.config import settings
-from .db.session import SessionLocal
 
 app = FastAPI(title="FastAPI JWT Tutorial")
 
@@ -23,13 +22,4 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-
 app.include_router(v1_api_router, prefix="/api/v1")
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()

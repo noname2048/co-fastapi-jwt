@@ -1,8 +1,10 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
+from sqlalchemy.orm import Session
 
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas.jwt import (
     LoginRequest,
@@ -17,11 +19,15 @@ router = APIRouter(tags=["jwt"])
 
 
 @router.post("/login", response_model=TokenResponse)
-def login_for_access_token(form: Annotated[LoginRequest, Body(embed=True)]):
+def login_for_access_token(
+    form: Annotated[LoginRequest, Body()],
+    db: Session = Depends(get_db),
+):
     """
     email, password 를 입력받아 access_token 과 refresh_token 을 입력받습니다.
     """
     user: User = jwt_service.authenticate_user(
+        db,
         email=form.email,
         password=form.password,
     )
@@ -42,7 +48,7 @@ def login_for_access_token(form: Annotated[LoginRequest, Body(embed=True)]):
 
 @router.post("/token", response_model=TokenResponse)
 def validate_access_token(
-    form: Annotated[ValidateAccessTokenRequest, Body(embed=True)]
+    form: Annotated[ValidateAccessTokenRequest, Body()],
 ):
     """
     access_token 이 정상인지 확인합니다.
@@ -52,7 +58,10 @@ def validate_access_token(
 
 
 @router.post("/token/refresh", response_model=RenewAccessTokenResponse)
-def renew_access_token_api(form: Annotated[RenewAccessTokenRequest, Body(embed=True)]):
+def renew_access_token_api(
+    form: Annotated[RenewAccessTokenRequest, Body()],
+    db: Session = Depends(get_db),
+):
     """
     refresh token을 이용해 access_token을 갱신합니다.
     refresh token의 expire 가 7일 이내라면 refresh token도 함께 반환합니다.

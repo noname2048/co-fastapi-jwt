@@ -1,4 +1,7 @@
+from fastapi import status
+from fastapi.exceptions import HTTPException
 from passlib.context import CryptContext
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -11,11 +14,18 @@ def hash_password(plain_password: str) -> str:
 
 
 def create_user(db: Session, email: str, plain_password: str):
+    email_already_exists_exception = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
+    )
+
     hashed_password = hash_password(plain_password)
     db_user = User(email=email, hashed_password=hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+    except IntegrityError:
+        raise email_already_exists_exception
     return db_user
 
 

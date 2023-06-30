@@ -1,8 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, status
-from fastapi.responses import Response
+from fastapi import APIRouter, Body, Depends, status
+from pydantic import Field, SecretStr
+from sqlalchemy.orm import Session
 
+from app.db.session import get_db
 from app.schemas import user as UserSchema
 from app.services import user as user_service
 
@@ -14,27 +16,35 @@ async def list_users():
     return {"message": "Hello World"}
 
 
-@router.post("/users")
-async def create_user(db, body: Annotated[UserSchema.UserCreate, Body(embed=True)]):
-    user = user_service.create_user(db, email=body.email, password=body.password)
+@router.post("/users", response_model=UserSchema.User)
+async def create_user(
+    email: str,
+    password: SecretStr,
+    db: Session = Depends(get_db),
+):
+    user = user_service.create_user(
+        db,
+        email=email,
+        plain_password=str(password),
+    )
     return user
 
 
 @router.get("/user/:id", response_model=UserSchema.User)
-async def retrieve_user(id: int):
+async def retrieve_user(id: int, db: Session = Depends(get_db)):
     return {"message": "Hello World"}
 
 
 @router.patch("/user/:id", response_model=UserSchema.User)
-async def update_user(id: int):
+async def update_user(id: int, db: Session = Depends(get_db)):
     return {"message": "Hello World"}
 
 
 @router.delete("/user/:id", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(id: int):
+async def delete_user(id: int, db: Session = Depends(get_db)):
     return
 
 
 @router.get("/user/me", response_model=UserSchema.User)
-async def retrieve_user_me():
+async def retrieve_user_me(db: Session = Depends(get_db)):
     return {"message": "Hello World"}
