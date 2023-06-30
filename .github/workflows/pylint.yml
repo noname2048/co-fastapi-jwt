@@ -24,7 +24,6 @@ jobs:
           poetry --version
       - name: Install dependencies
         run: |
-          source $(poetry env info --path)/bin/activate)
           poetry install
       - name: Analysing the code with pylint
         run: |
