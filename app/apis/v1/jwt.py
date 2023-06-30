@@ -18,9 +18,10 @@ from app.services import jwt as jwt_service
 router = APIRouter(tags=["jwt"])
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/auth/login", response_model=TokenResponse)
 def login_for_access_token(
-    form: Annotated[LoginRequest, Body()],
+    email: str = Body(...),
+    password: str = Body(...),
     db: Session = Depends(get_db),
 ):
     """
@@ -28,8 +29,8 @@ def login_for_access_token(
     """
     user: User = jwt_service.authenticate_user(
         db,
-        email=form.email,
-        password=form.password,
+        email=email,
+        password=password,
     )
     if not user:
         raise HTTPException(
@@ -37,8 +38,8 @@ def login_for_access_token(
             detail="Incorrect email or password",
         )
 
-    access_token = jwt_service.create_access_token(data={"sub": user.id})
-    refresh_token = jwt_service.create_refresh_token(data={"sub": user.id})
+    access_token = jwt_service.create_access_token(data={"sub": user.uuid})
+    refresh_token = jwt_service.create_refresh_token(data={"sub": user.uuid})
 
     return TokenResponse(
         access_token=access_token,
@@ -46,7 +47,7 @@ def login_for_access_token(
     )
 
 
-@router.post("/token", response_model=TokenResponse)
+@router.post("/token/verify", response_model=TokenResponse)
 def validate_access_token(
     form: Annotated[ValidateAccessTokenRequest, Body()],
 ):
@@ -57,7 +58,7 @@ def validate_access_token(
     jwt_service.validate_access_token(access_token=access_token)
 
 
-@router.post("/token/refresh", response_model=RenewAccessTokenResponse)
+@router.post("/auth/refresh", response_model=RenewAccessTokenResponse)
 def renew_access_token_api(
     form: Annotated[RenewAccessTokenRequest, Body()],
     db: Session = Depends(get_db),
