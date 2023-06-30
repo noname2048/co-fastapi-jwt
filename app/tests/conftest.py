@@ -4,7 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.db.base import Base
-from app.main import app, get_db
+from app.db.session import get_db
+from app.main import app
 
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/test"
 engine = create_engine(
