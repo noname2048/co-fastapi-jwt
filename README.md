@@ -48,3 +48,12 @@ pyproject.toml 에 해당 설정을 넣습니다.
  그러나 아직까지 ruff가 pylint를 대체하기 어려워 보입니다.
 pylint가 제공하는 정보에 비해 ruff의 디버깅 정보가 많이 부족해 보입니다. (redefined-outer-name 등)
  
+ ### .vscode(black, isort)
+다음과 같은 설정을 사용합니다.
+```json
+{
+    "isort.args": ["--profile", "black"],
+    "python.formatting.provider": "black",
+    "black-formatter.args": ["--line-length", "88", "--extend-exlucde", "alembic"],
+}
+```
