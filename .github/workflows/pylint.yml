@@ -24,4 +24,4 @@ jobs:
       # ----------------------------
       - name: Analysing the code with pylint
         run: |
-          pylint app
+          python -m pylint app
