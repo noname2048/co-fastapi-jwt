@@ -47,6 +47,7 @@ pyproject.toml 에 해당 설정을 넣습니다.
  
  그러나 아직까지 ruff가 pylint를 대체하기 어려워 보입니다.
 pylint가 제공하는 정보에 비해 ruff의 디버깅 정보가 많이 부족해 보입니다. (redefined-outer-name 등)
+ruff 는 속도가 빠르므로 main 이외의 브랜치나 pre-commit 으로 이용하는 게 좋을 것 같음
  
  ### .vscode(black, isort)
 다음과 같은 설정을 사용합니다.
@@ -57,3 +58,7 @@ pylint가 제공하는 정보에 비해 ruff의 디버깅 정보가 많이 부�
     "black-formatter.args": ["--line-length", "88", "--extend-exlucde", "alembic"],
 }
 ```
+
+### workflows(pylint)
+- 여러가지 디버그를 도와줄 수 있는 pylint 관련 
+- github action 에서 poetry shell 이나, source 시에도 pylint를 못 찾아서 requirements 로 리스트화 해서 설치하는 형식으로 우회  
