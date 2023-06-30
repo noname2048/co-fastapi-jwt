@@ -11,6 +11,3 @@ jobs:
         with:
             poetry-version: "1.5.0"
       - uses: chartboost/ruff-action@v1
-      - name: Analysing the code with Ruff
-        run: |
-          ruff check $(git ls-files '*.py') --extend-exclude=alembic
