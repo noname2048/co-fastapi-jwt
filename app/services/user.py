@@ -1,7 +1,9 @@
+from uuid import UUID
+
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from passlib.context import CryptContext
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -41,8 +43,17 @@ def get_user_by_email(db: Session, email: str) -> User:
     return db.query(User).filter(User.email == email).first()
 
 
-def reset_password(db: Session, email: str, password: str) -> None:
-    db_user = db.query(User).filter(User.email == email).first()
+def reset_password(db: Session, uuid: UUID, email: str, password: str) -> None:
+    user_not_exists_exception = HTTPException(
+        detail="User not exists",
+        status_code=status.HTTP_404_NOT_FOUND,
+    )
+
+    try:
+        db_user = db.query(User).filter(User.email == email).one()
+    except NoResultFound:
+        raise user_not_exists_exception
     db_user.hashed_password = password
+    db.add(db_user)
     db.commit()
     return None
