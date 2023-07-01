@@ -43,8 +43,8 @@ def _sessionmaker():
     drop_database(TEST_DATABASE_URL)
 
 
-@pytest.fixture(scope="function")
-def db(_sessionmaker):
+@pytest.fixture(scope="function", name="db")
+def _db(_sessionmaker):
     try:
         test_db: Session = _sessionmaker()
         test_db.begin_nested()
@@ -54,15 +54,15 @@ def db(_sessionmaker):
         test_db.close()
 
 
-@pytest.fixture(scope="function")
-def client(db):
+@pytest.fixture(scope="function", name="client")
+def _client(db):
     app.dependency_overrides[get_db] = lambda: db
-    with TestClient(app) as client:
-        yield client
+    with TestClient(app) as test_client:
+        yield test_client
 
 
-@pytest.fixture(scope="module")
-def db_module(_sessionmaker):
+@pytest.fixture(scope="module", name="db_module")
+def _db_module(_sessionmaker):
     try:
         test_db: Session = _sessionmaker()
         test_db.begin_nested()
@@ -75,5 +75,5 @@ def db_module(_sessionmaker):
 @pytest.fixture(scope="module")
 def client_module(db_module):
     app.dependency_overrides[get_db] = lambda: db_module
-    with TestClient(app) as client:
-        yield client
+    with TestClient(app) as test_client:
+        yield test_client
