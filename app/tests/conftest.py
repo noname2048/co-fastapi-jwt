@@ -27,37 +27,53 @@ def overried_get_db():
         test_db.close()
 
 
-app.dependency_overrides[get_db] = overried_get_db
-
-client = TestClient(app)
-
-
 @pytest.fixture(autouse=True, scope="session")
-def db():
-    # assert TEST_DATABASE_URL.endswith("test")
-    # if database_exists(TEST_DATABASE_URL):
-    #     drop_database(TEST_DATABASE_URL)
-    # create_database(TEST_DATABASE_URL)
+def _sessionmaker():
+    assert TEST_DATABASE_URL.endswith("test")
+    if database_exists(TEST_DATABASE_URL):
+        drop_database(TEST_DATABASE_URL)
+    create_database(TEST_DATABASE_URL)
 
-    try:  # TODO: change logic BETA for Change if Table exists
+    try:
         Base.metadata.create_all(bind=engine)
-        test_db = TestingSessionLocal()
-        yield test_db
+        yield TestingSessionLocal
     finally:
-        test_db.close()
         Base.metadata.drop_all(bind=engine)
 
-    # drop_database(TEST_DATABASE_URL)
+    drop_database(TEST_DATABASE_URL)
 
 
-@pytest.fixture
-def engine(db: Session) -> Session:
-    db.begin_nested()
-    yield db
-    db.rollback()
+@pytest.fixture(scope="function")
+def db(_sessionmaker):
+    try:
+        test_db: Session = _sessionmaker()
+        test_db.begin_nested()
+        yield test_db
+    finally:
+        test_db.rollback()
+        test_db.close()
 
 
-@pytest.fixture
-def client(session):
-    app.dependency_overrides[get_db] = lambda: session
-    return TestClient(app)
+@pytest.fixture(scope="function")
+def client(db):
+    app.dependency_overrides[get_db] = lambda: db
+    with TestClient(app) as client:
+        yield client
+
+
+@pytest.fixture(scope="module")
+def db_module(_sessionmaker):
+    try:
+        test_db: Session = _sessionmaker()
+        test_db.begin_nested()
+        yield test_db
+    finally:
+        test_db.rollback()
+        test_db.close()
+
+
+@pytest.fixture(scope="module")
+def client_module(db_module):
+    app.dependency_overrides[get_db] = lambda: db_module
+    with TestClient(app) as client:
+        yield client

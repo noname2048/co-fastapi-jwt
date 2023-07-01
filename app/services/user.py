@@ -24,7 +24,7 @@ def create_user(db: Session, email: str, plain_password: str):
     db_user = User(email=email, hashed_password=hashed_password)
     try:
         db.add(db_user)
-        db.commit()
+        db.flush()
         db.refresh(db_user)
     except IntegrityError:
         raise email_already_exists_exception
@@ -55,5 +55,5 @@ def reset_password(db: Session, uuid: UUID, email: str, password: str) -> None:
         raise user_not_exists_exception
     db_user.hashed_password = password
     db.add(db_user)
-    db.commit()
+    db.flush()
     return None
