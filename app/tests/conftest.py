@@ -1,15 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/test"
+TEST_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/test"
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    TEST_DATABASE_URL,
 )
 TestingSessionLocal = sessionmaker(
     autocommit=False,
@@ -26,18 +27,53 @@ def overried_get_db():
         test_db.close()
 
 
-app.dependency_overrides[get_db] = overried_get_db
-
-client = TestClient(app)
-
-
 @pytest.fixture(autouse=True, scope="session")
-def db():
-    try:  # TODO: change logic BETA for Change if Table exists
-        Base.metadata.drop_all(bind=engine)
+def _sessionmaker():
+    assert TEST_DATABASE_URL.endswith("test")
+    if database_exists(TEST_DATABASE_URL):
+        drop_database(TEST_DATABASE_URL)
+    create_database(TEST_DATABASE_URL)
+
+    try:
         Base.metadata.create_all(bind=engine)
-        test_db = TestingSessionLocal()
+        yield TestingSessionLocal
+    finally:
+        Base.metadata.drop_all(bind=engine)
+
+    drop_database(TEST_DATABASE_URL)
+
+
+@pytest.fixture(scope="function", name="db")
+def _db(_sessionmaker):
+    try:
+        test_db: Session = _sessionmaker()
+        test_db.begin_nested()
         yield test_db
     finally:
+        test_db.rollback()
         test_db.close()
-        Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function", name="client")
+def _client(db):
+    app.dependency_overrides[get_db] = lambda: db
+    with TestClient(app) as test_client:
+        yield test_client
+
+
+@pytest.fixture(scope="module", name="db_module")
+def _db_module(_sessionmaker):
+    try:
+        test_db: Session = _sessionmaker()
+        test_db.begin_nested()
+        yield test_db
+    finally:
+        test_db.rollback()
+        test_db.close()
+
+
+@pytest.fixture(scope="module")
+def client_module(db_module):
+    app.dependency_overrides[get_db] = lambda: db_module
+    with TestClient(app) as test_client:
+        yield test_client
