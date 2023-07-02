@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.user import User
+from app.schemas import user as user_schema
 from app.schemas.jwt import (
     LoginRequest,
     RenewAccessTokenRequest,
@@ -19,7 +20,7 @@ from app.services import user as user_service
 router = APIRouter(tags=["jwt"])
 
 
-@router.post("/auth/signup", response_model=User)
+@router.post("/auth/signup", response_model=user_schema.User)
 def signup(
     email: Annotated[str, Body(...)],
     password: Annotated[str, Body(...)],
