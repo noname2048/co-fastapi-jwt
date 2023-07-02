@@ -71,7 +71,7 @@ def validate_access_token(
     access_token 이 정상인지 확인합니다.
     """
     access_token = form.access_token
-    jwt_service.validate_access_token(access_token=access_token)
+    jwt_service.validate_access_token(token=access_token)
 
 
 @router.post("/auth/refresh", response_model=RenewAccessTokenResponse)
