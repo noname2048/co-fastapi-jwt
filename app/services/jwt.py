@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -51,7 +52,7 @@ def create_access_token(
     current_time = current_time or datetime.utcnow()
 
     to_encode = {
-        "aud": user.uuid,
+        "aud": str(user.uuid),
         "exp": datetime.utcnow() + expires_delta,
         "token_type": "access",
     }
@@ -81,7 +82,6 @@ def validate_access_token(token, current_time: datetime = None) -> None:
 
 def create_refresh_token(
     db: Session,
-    data: dict,
     user: User,
     expires_delta: timedelta = None,
     current_time: datetime = None,
@@ -92,14 +92,14 @@ def create_refresh_token(
     expires_delta = expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     current_time = current_time or datetime.utcnow()
 
-    db_refresh_token: RefreshToken = RefreshToken(user_id=user.uuid)
+    db_refresh_token: RefreshToken = RefreshToken(uuid=uuid4(), user_id=user.uuid)
     db.add(db_refresh_token)
-    db.commit(db_refresh_token)
-    db_refresh_token = db.refresh(db_refresh_token)
+    db.flush()
+    db.refresh(db_refresh_token)
 
     to_encode = {
-        "aud": user.uuid,
-        "jit": db_refresh_token.uuid,
+        "aud": str(user.uuid),
+        "jit": str(db_refresh_token.uuid),
         "exp": current_time + expires_delta,
         "token_type": "refresh",
     }
