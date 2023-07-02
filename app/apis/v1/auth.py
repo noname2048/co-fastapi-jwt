@@ -33,7 +33,7 @@ def signup(
     return user
 
 
-@router.post("/auth/signin", response_model=TokenResponse)
+@router.post("/auth/login", response_model=TokenResponse)
 def login_for_access_token(
     email: str = Body(...),
     password: str = Body(...),
