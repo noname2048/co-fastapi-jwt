@@ -52,7 +52,7 @@ def create_access_token(
     current_time = current_time or datetime.utcnow()
 
     to_encode = {
-        "aud": str(user.uuid),
+        "uuid": str(user.uuid),
         "exp": datetime.utcnow() + expires_delta,
         "token_type": "access",
     }
@@ -60,7 +60,7 @@ def create_access_token(
     return encoded_jwt
 
 
-def validate_access_token(token, current_time: datetime = None) -> None:
+def validate_access_token(token: str, current_time: datetime = None) -> None:
     current_time = current_time or datetime.utcnow()
 
     invalid_token_exception = HTTPException(
@@ -76,7 +76,8 @@ def validate_access_token(token, current_time: datetime = None) -> None:
     if payload["token_type"] != "access":
         raise invalid_token_exception
 
-    if payload["exp"] < current_time:
+    exp = datetime.fromtimestamp(payload["exp"])
+    if exp < current_time:
         raise invalid_token_exception
 
 
@@ -98,7 +99,7 @@ def create_refresh_token(
     db.refresh(db_refresh_token)
 
     to_encode = {
-        "aud": str(user.uuid),
+        "uuid": str(user.uuid),
         "jit": str(db_refresh_token.uuid),
         "exp": current_time + expires_delta,
         "token_type": "refresh",
@@ -107,7 +108,7 @@ def create_refresh_token(
     return encoded_jwt
 
 
-def renew_access_token(db: Session, refresh_token: str, timestamp: datetime):
+def renew_access_token(db: Session, refresh_token: str, timestamp: datetime = None):
     """refresh token 을 받아 access token 을 갱신합니다.
     refresh token 은 DB를 체크합니다.
 
@@ -117,6 +118,7 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime):
     - DB 검증 (성능을 위해 최대한 나중에 합니다)
     - 토큰갱신
     """
+    timestamp = timestamp or datetime.utcnow()
 
     # generral token error
     invalid_token_exception = HTTPException(
@@ -139,7 +141,7 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime):
 
     # 만료 검증
     exp = payload.get("exp")
-    if datetime.stptime(exp, "%Y-%m-%d %H:%M:%S.%f %z") < timestamp:
+    if datetime.fromtimestamp(exp) < timestamp:
         expired_token_exception = HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Expired token",
@@ -158,11 +160,13 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime):
     if not db_user:
         raise invalid_token_exception
 
-    access_token = create_access_token(data=payload)
+    if db_refresh_token.user_id != db_user.uuid:
+        raise invalid_token_exception
+
+    access_token = create_access_token(user=db_user)
 
     if exp > timestamp - timedelta(days=REFRESH_TOKEN_RENEW_DAYS):
-        refresh_token = create_refresh_token(data=payload)
-        return access_token, refresh_token
+        refresh_token = create_refresh_token(user=db_user)
 
     return access_token, refresh_token
 

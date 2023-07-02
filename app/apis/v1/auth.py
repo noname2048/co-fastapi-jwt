@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -63,15 +63,16 @@ def login_for_access_token(
     )
 
 
-@router.post("/auth/verify", response_model=TokenResponse)
+@router.post("/auth/verify", status_code=status.HTTP_200_OK)
 def validate_access_token(
-    form: Annotated[ValidateAccessTokenRequest, Body()],
+    form: Annotated[ValidateAccessTokenRequest, Body(embed=False)],
 ):
     """
     access_token 이 정상인지 확인합니다.
     """
     access_token = form.access_token
     jwt_service.validate_access_token(token=access_token)
+    return {"message": "valid access token"}
 
 
 @router.post("/auth/refresh", response_model=RenewAccessTokenResponse)
@@ -84,7 +85,8 @@ def renew_access_token_api(
     refresh token의 expire 가 7일 이내라면 refresh token도 함께 반환합니다.
     """
     access_token, refresh_token = jwt_service.renew_access_token(
-        refresh_token=form.refresh_token, timestamp=datetime.utcnow()
+        db,
+        refresh_token=form.refresh_token,
     )
 
     return TokenResponse(
