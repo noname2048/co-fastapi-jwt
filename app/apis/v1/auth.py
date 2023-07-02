@@ -35,8 +35,7 @@ def signup(
 
 @router.post("/auth/login", response_model=TokenResponse)
 def login_for_access_token(
-    email: str = Body(...),
-    password: str = Body(...),
+    form: Annotated[LoginRequest, Body(..., embed=False)],
     db: Session = Depends(get_db),
 ):
     """
@@ -45,8 +44,8 @@ def login_for_access_token(
     """
     user: User = jwt_service.authenticate_user(
         db,
-        email=email,
-        password=password,
+        email=form.email,
+        password=form.password,
     )
     if not user:
         raise HTTPException(

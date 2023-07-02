@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    email: str = Field(example="test@test.com")
+    password: str = Field(example="test1234")
 
 
 class ValidateAccessTokenRequest(BaseModel):
