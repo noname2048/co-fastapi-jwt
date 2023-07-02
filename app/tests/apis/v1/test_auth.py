@@ -1,7 +1,10 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from app.models import jwt as jwt_model
 
 
-def test_auth(client: TestClient) -> None:
+def test_auth(client: TestClient, db: Session) -> None:
     fake_email = "test@test.com"
     fake_password = "test1234"
 
@@ -29,6 +32,7 @@ def test_auth(client: TestClient) -> None:
     assert response.status_code == 200, response.text
     assert response.json()["access_token"]
     assert response.json()["refresh_token"]
+    assert db.query(jwt_model.RefreshToken).count() == 1
 
     access_token = response.json()["access_token"]
     refresh_token = response.json()["refresh_token"]
