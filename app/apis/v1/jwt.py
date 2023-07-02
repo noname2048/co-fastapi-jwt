@@ -14,18 +14,34 @@ from app.schemas.jwt import (
     ValidateAccessTokenRequest,
 )
 from app.services import jwt as jwt_service
+from app.services import user as user_service
 
 router = APIRouter(tags=["jwt"])
 
 
-@router.post("/auth/login", response_model=TokenResponse)
+@router.post("/auth/signup", response_model=User)
+def signup(
+    email: Annotated[str, Body(...)],
+    password: Annotated[str, Body(...)],
+    db: Session = Depends(get_db),
+):
+    user = user_service.create_user(
+        db,
+        email=email,
+        plain_password=password,
+    )
+    return user
+
+
+@router.post("/auth/signin", response_model=TokenResponse)
 def login_for_access_token(
     email: str = Body(...),
     password: str = Body(...),
     db: Session = Depends(get_db),
 ):
     """
-    email, password 를 입력받아 access_token 과 refresh_token 을 입력받습니다.
+    email, password 를 입력받아
+    access_token 과 refresh_token 을 반환합니다.
     """
     user: User = jwt_service.authenticate_user(
         db,
@@ -47,7 +63,7 @@ def login_for_access_token(
     )
 
 
-@router.post("/token/verify", response_model=TokenResponse)
+@router.post("/auth/verify", response_model=TokenResponse)
 def validate_access_token(
     form: Annotated[ValidateAccessTokenRequest, Body()],
 ):
