@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.exc import NoResultFound
 
 from app.core.config import settings
 from app.models.jwt import RefreshToken
@@ -140,8 +141,8 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime = No
         raise invalid_token_exception
 
     # 만료 검증
-    exp = payload.get("exp")
-    if datetime.fromtimestamp(exp) < timestamp:
+    exp = datetime.fromtimestamp(payload.get("exp"))
+    if exp < timestamp:
         expired_token_exception = HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Expired token",
@@ -150,13 +151,26 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime = No
 
     # jit 검증
     jit = payload["jit"]
-    db_refresh_token = db.query(RefreshToken).filter(RefreshToken.uuid == jit).one()
+    try:
+        db_refresh_token = db.query(RefreshToken).filter(RefreshToken.uuid == jit).one()
+    except NoResultFound:
+        raise invalid_token_exception
+
     if not db_refresh_token:
         raise invalid_token_exception
 
-    # aud 검증
+    # uuid 검증
     uuid = payload["uuid"]
-    db_user = db.query(User).filter(User.uuid == uuid, User.is_activate is True).one()
+    try:
+        db_user = (
+            db.query(User)
+            .filter(User.uuid == uuid)
+            .filter(User.is_activate == True)  # noqa E712
+            .one()
+        )
+    except NoResultFound:
+        raise invalid_token_exception
+
     if not db_user:
         raise invalid_token_exception
 
@@ -165,8 +179,8 @@ def renew_access_token(db: Session, refresh_token: str, timestamp: datetime = No
 
     access_token = create_access_token(user=db_user)
 
-    if exp > timestamp - timedelta(days=REFRESH_TOKEN_RENEW_DAYS):
-        refresh_token = create_refresh_token(user=db_user)
+    if timestamp > exp - timedelta(days=REFRESH_TOKEN_RENEW_DAYS):
+        refresh_token = create_refresh_token(db, user=db_user)
 
     return access_token, refresh_token
 

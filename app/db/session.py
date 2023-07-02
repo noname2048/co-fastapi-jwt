@@ -1,5 +1,9 @@
+from contextvars import ContextVar
+from functools import wraps
+from typing import Callable, Optional
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from app.core.config import settings
 
@@ -19,6 +23,6 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
-        db.commit()
+        db.rollback()  # every uncommited transaction will be rollbacked
     finally:
         db.close()
