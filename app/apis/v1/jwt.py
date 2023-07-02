@@ -38,8 +38,8 @@ def login_for_access_token(
             detail="Incorrect email or password",
         )
 
-    access_token = jwt_service.create_access_token(data={"sub": user.uuid})
-    refresh_token = jwt_service.create_refresh_token(data={"sub": user.uuid})
+    access_token = jwt_service.create_access_token(user=user)
+    refresh_token = jwt_service.create_refresh_token(db=db, user=user)
 
     return TokenResponse(
         access_token=access_token,

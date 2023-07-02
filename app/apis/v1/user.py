@@ -18,8 +18,8 @@ async def list_users():
 
 @router.post("/users", response_model=UserSchema.User)
 async def create_user(
-    email: str,
-    password: SecretStr,
+    email: Annotated[str, Body(...)],
+    password: Annotated[str, Body(...)],
     db: Session = Depends(get_db),
 ):
     user = user_service.create_user(
