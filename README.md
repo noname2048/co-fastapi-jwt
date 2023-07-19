@@ -73,3 +73,16 @@ ruff 는 속도가 빠르므로 main 이외의 브랜치나 pre-commit 으로 �
 
 ### github action flows
 pylint 가 체크하는데 시간이 오래 걸리기 때문에, app 디렉토리가 변경되었을 떄만 실행되도록 변경
+
+
+### 매 1분간 수집되는 데이터 5분으로 정렬 (예시)
+
+```sql
+SELECT *
+  FROM (SELECT row_number() over (partition by pr.hi order by pr.created_at) as rn, *
+          FROM (SELECT div(extract('minute' from sd.created_at), 5) as hi, *
+                  FROM sensor_data sd
+                 ORDER BY sd.created_at DESC
+                 LIMIT 20) pr) po
+WHERE po.rn = 1
+```
